@@ -3,6 +3,8 @@
 from numpy import *
 import operator
 
+from os import listdir
+
 
 # 数据
 def createDataSet():
@@ -106,3 +108,49 @@ def classifyPerson():
     inArr = array([ffMiles, percentTats, iceCream])
     classifierResult = classify0((inArr - minVals) / ranges, normMat, datingLabels, 3)
     print "You will propably like this person %s" % (resultList[classifierResult - 1])
+
+
+# 将文件内的32*32个数字，读到一个1*1024的矩阵
+def img2vector(filename):
+    returnVect = zeros((1, 1024))
+    fr = open(filename)
+    for i in range(32):
+        lineStr = fr.readline()
+        for j in range(32):
+            returnVect[0, 32 * i + j] = int(lineStr[j])
+    return returnVect
+
+
+def handWritingClassTest():
+    hwLabels = []
+    traningFileList = listdir('digits/trainingDigits')
+
+    m = len(traningFileList)
+    traningMat = zeros((m, 1024))
+    for i in range(m):
+        fileNameStr = traningFileList[i]
+        fileStr = fileNameStr.split(".")[0]
+        classNumStr = fileStr.split("_")[0]
+        hwLabels.append(classNumStr)
+
+        traningMat[i] = img2vector("digits/trainingDigits/%s" % fileNameStr)
+
+    testFileList = listdir('digits/testDigits')
+
+    errorCount = 0.0
+    mTest = len(testFileList)
+    for i in range(mTest):
+        fileNameStr = testFileList[i]
+        fileStr = fileNameStr.split(".")[0]
+        classNumStr = fileStr.split("_")[0]
+
+        testMat = img2vector('digits/testDigits/%s' % fileNameStr)
+
+        result = classify0(testMat, traningMat, hwLabels, 3)
+
+        print "the classifier result for %s is %s, the real is %s" % (fileNameStr, result, classNumStr)
+
+        if classNumStr != result:
+            errorCount += 1.0
+
+    print "errorRatis is %d" % (errorCount / float(mTest))
